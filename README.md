@@ -1,7 +1,7 @@
-# Lyre
-Lyre is a a simulation of a wave on a string. Waves on strings are what makes a guitar guitar (or a lyre ly?).
+# Lyra
+Lyra is a a simulation of a wave on a string. Waves on strings are what makes a guitar guitar (or a lyre ly?).
 
-It runs anywere in a web browser: [lyre](https://johnedchristensen.github.io/lyre/). 
+It runs anywere in a web browser: [lyra](https://johnedchristensen.github.io/lyra/). 
 
 Optionally, it can be compiled to run as a native desktop application for Windows, MacOS and Linux.
 

@@ -1,4 +1,4 @@
-use egui::Color32;
+use crate::style::nord_ui_visuals;
 
 /// We derive Deserialize/Serialize so we can persist app state on shutdown.
 #[derive(serde::Deserialize, serde::Serialize)]
@@ -65,10 +65,7 @@ impl TemplateApp {
     pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
         // This is also where you can customize the look and feel of egui using
         // `cc.egui_ctx.set_visuals` and `cc.egui_ctx.set_fonts`.
-        let mut theme = egui::Visuals::dark();
-        theme.window_fill = Color32::from_rgb(48, 52, 63);
-        theme.panel_fill = Color32::from_rgb(48, 52, 63);
-        cc.egui_ctx.set_visuals(theme);
+        cc.egui_ctx.set_visuals(nord_ui_visuals());
         // Load previous app state (if any).
         // Note that you must enable the `persistence` feature for this to work.
         if let Some(storage) = cc.storage {
@@ -120,7 +117,7 @@ impl eframe::App for TemplateApp {
                 *value += 1.0;
             }
 
-            ui.with_layout(egui::Layout::bottom_up(egui::Align::LEFT), |ui| {
+            ui.with_layout(egui::Layout::top_down(egui::Align::LEFT), |ui| {
                 ui.horizontal(|ui| {
                     ui.spacing_mut().item_spacing.x = 0.0;
                     ui.label("powered by ");
@@ -131,6 +128,64 @@ impl eframe::App for TemplateApp {
                         "https://github.com/emilk/egui/tree/master/crates/eframe",
                     );
                     ui.label(".");
+                });
+                // examples of all widgets
+                ui.heading("All widgets");
+                ui.separator();
+
+                let mut boolean = false;
+                let mut string = String::new();
+                let mut scalar = 0.0;
+                let mut color = egui::Color32::WHITE;
+
+                // Add widgets here
+                ui.label("Welcome to the widget gallery!");
+
+                ui.hyperlink_to(
+                    format!("{} egui on GitHub", egui::special_emojis::GITHUB),
+                    "https://github.com/emilk/egui",
+                );
+
+                ui.add(egui::TextEdit::singleline(&mut string).hint_text("Write something here"));
+
+                if ui.button("Click me!").clicked() {
+                    boolean = !boolean;
+                }
+
+                ui.checkbox(&mut boolean, "Checkbox");
+
+                ui.horizontal(|ui| {
+                    ui.selectable_value(&mut boolean, true, "First");
+                    ui.selectable_value(&mut boolean, false, "Second");
+                });
+
+                egui::ComboBox::from_label("Take your pick")
+                    .selected_text(format!("{:?}", boolean))
+                    .show_ui(ui, |ui| {
+                        ui.style_mut().wrap = Some(false);
+                        ui.set_min_width(60.0);
+                        ui.selectable_value(&mut boolean, true, "First");
+                        ui.selectable_value(&mut boolean, false, "Second");
+                    });
+
+                ui.add(egui::Slider::new(&mut scalar, 0.0..=360.0).suffix("°"));
+
+                ui.add(egui::DragValue::new(&mut scalar).speed(1.0));
+
+                let progress = scalar / 360.0;
+                let progress_bar = egui::ProgressBar::new(progress)
+                    .show_percentage()
+                    .animate(false);
+                ui.add(progress_bar);
+
+                ui.color_edit_button_srgba(&mut color);
+
+                ui.collapsing("Click to see what is hidden!", |ui| {
+                    ui.horizontal_wrapped(|ui| {
+                        ui.spacing_mut().item_spacing.x = 0.0;
+                        ui.label("It's a ");
+                        ui.add(egui::Spinner::new());
+                    });
                 });
             });
         });
