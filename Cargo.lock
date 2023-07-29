@@ -1315,7 +1315,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "lyre"
+name = "lyra"
 version = "0.1.0"
 dependencies = [
  "eframe",

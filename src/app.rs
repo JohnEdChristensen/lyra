@@ -1,3 +1,5 @@
+use egui::Color32;
+
 /// We derive Deserialize/Serialize so we can persist app state on shutdown.
 #[derive(serde::Deserialize, serde::Serialize)]
 #[serde(default)] // if we add new fields, give them default values when deserializing old state
@@ -9,6 +11,44 @@ pub struct TemplateApp {
     #[serde(skip)]
     value: f32,
 }
+//create an overrid style for the nord theme. Starts based on the dark theme
+/*
+fn nord_style() -> egui::Visuals {
+            egui::Visuals{
+            dark_mode: true,
+            override_text_color: None,
+            widgets: Widgets::default(),
+            selection: Selection::default(),
+            hyperlink_color: Color32::from_rgb(90, 170, 255),
+            faint_bg_color: Color32::from_additive_luminance(5), // visible, but barely so
+            extreme_bg_color: Color32::from_gray(10),            // e.g. TextEdit background
+            code_bg_color: Color32::from_gray(64),
+            warn_fg_color: Color32::from_rgb(255, 143, 0), // orange
+            error_fg_color: Color32::from_rgb(255, 0, 0),  // red
+
+            window_rounding: Rounding::same(6.0),
+            window_shadow: Shadow::big_dark(),
+            window_fill: Color32::from_gray(27),
+            window_stroke: Stroke::new(1.0, Color32::from_gray(60)),
+
+            menu_rounding: Rounding::same(6.0),
+
+            panel_fill: Color32::from_gray(27),
+
+            popup_shadow: Shadow::small_dark(),
+            resize_corner_size: 12.0,
+            text_cursor_width: 2.0,
+            text_cursor_preview: false,
+            clip_rect_margin: 3.0, // should be at least half the size of the widest frame stroke + max WidgetVisuals::expansion
+            button_frame: true,
+            collapsing_header_frame: false,
+            indent_has_left_vline: true,
+
+            striped: false,
+
+            slider_trailing_fill: false,
+        }
+} */
 
 impl Default for TemplateApp {
     fn default() -> Self {
@@ -25,7 +65,10 @@ impl TemplateApp {
     pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
         // This is also where you can customize the look and feel of egui using
         // `cc.egui_ctx.set_visuals` and `cc.egui_ctx.set_fonts`.
-
+        let mut theme = egui::Visuals::dark();
+        theme.window_fill = Color32::from_rgb(48, 52, 63);
+        theme.panel_fill = Color32::from_rgb(48, 52, 63);
+        cc.egui_ctx.set_visuals(theme);
         // Load previous app state (if any).
         // Note that you must enable the `persistence` feature for this to work.
         if let Some(storage) = cc.storage {
@@ -104,7 +147,7 @@ impl eframe::App for TemplateApp {
             egui::warn_if_debug_build(ui);
         });
 
-        if false {
+        if true {
             egui::Window::new("Window").show(ctx, |ui| {
                 ui.label("Windows can be moved by dragging them.");
                 ui.label("They are automatically sized based on contents.");

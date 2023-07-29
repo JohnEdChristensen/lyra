@@ -1,5 +1,5 @@
 [package]
-name = "lyre"
+name = "lyra"
 version = "0.1.0"
 authors = ["John Christensen <johnedchristensen@gtmail.com>"]
 edition = "2021"
