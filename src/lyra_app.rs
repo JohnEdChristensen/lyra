@@ -56,7 +56,7 @@ impl eframe::App for LyraApp {
         // Tip: a good default choice is to just keep the `CentralPanel`.
         // For inspiration and more examples, go to https://emilk.github.io/egui
 
-        #[cfg(not(target_arch = "wasm32"))] // no File->Quit on web pages!
+        //#[cfg(not(target_arch = "wasm32"))] // no File->Quit on web pages!
         egui::CentralPanel::default().show(ctx, |ui| {
             Frame::canvas(ui.style()).show(ui, |ui| {
                 ui.ctx().request_repaint();
@@ -87,7 +87,10 @@ impl eframe::App for LyraApp {
                         .collect();
 
                     let thickness = 10.0 / mode as f32;
-                    shapes.push(epaint::Shape::line(points, Stroke::new(thickness, Color32::WHITE)));
+                    shapes.push(epaint::Shape::line(
+                        points,
+                        Stroke::new(thickness, Color32::WHITE),
+                    ));
                 }
 
                 ui.painter().extend(shapes);
