@@ -5,3 +5,4 @@ pub use app::TemplateApp;
 mod lyra_app;
 mod style;
 pub use lyra_app::LyraApp;
+mod string_wave;
