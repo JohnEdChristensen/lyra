@@ -15,7 +15,7 @@ impl Default for LyraApp {
     fn default() -> Self {
         Self {
             // Example stuff:
-            wave: StringWave::new(500, 100, 500.0),
+            wave: StringWave::new(500, 100, 500.0,0.9),
         }
     }
 }
@@ -48,14 +48,38 @@ impl eframe::App for LyraApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         let Self { wave } = self;
         //Update the state
-        wave.update();
-        //simple performance graph in the top left
+        wave.update_wave();
         // Examples of how to create different panels and windows.
         // Pick whichever suits you.
         // Tip: a good default choice is to just keep the `CentralPanel`.
         // For inspiration and more examples, go to https://emilk.github.io/egui
 
         //#[cfg(not(target_arch = "wasm32"))] // no File->Quit on web pages!
+        //collapse pane
+
+
+                //create settings menu
+                egui::Window::new("Settings").default_pos(Pos2{x: 0.0,y: 500.0}).show(ctx, |ui| {
+                    ui.vertical(|ui| {
+                        ui.add(
+                            egui::Slider::new(&mut wave.c, 0.000001..=1.0)
+                                .text("Wave Speed")
+                                .clamp_to_range(true),
+                        );
+                        ui.add(
+                            egui::Slider::new(&mut wave.initial_num_points, wave.starting_pos_index..=1000)
+                                .text("Number of Points")
+                                .clamp_to_range(true),
+                        );
+                        //reset button
+                        if ui.button("Reset").clicked() {
+                            wave.set_initial_conditions();
+                        }
+                    });
+                });//create settings menu
+
+
+        
         egui::CentralPanel::default().show(ctx, |ui| {
             Frame::canvas(ui.style()).show(ui, |ui| {
                 ui.ctx().request_repaint();
@@ -76,5 +100,8 @@ impl eframe::App for LyraApp {
                 ui.painter().extend(shapes);
             });
         });
+
+
     }
+
 }

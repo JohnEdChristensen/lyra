@@ -1,37 +1,71 @@
+use std::vec;
+
 use egui::{emath::RectTransform, *};
 //wave on a string. Modeled as a vector of displacement values
 pub struct StringWave {
-    pub num_points: usize,
-    pub string_pos: Vec<f32>,
+    past_string_pos: Vec<f32>,
+    current_string_pos: Vec<f32>,
+    num_points: usize,
+    pub initial_num_points: usize,
     pub starting_pos_index: usize,
     pub starting_displacement: f32,
+    pub c:f32
 }
+
 
 impl StringWave {
     ///Create a new StringWave
     /// num_points: number of points to model the string with
     /// starting_pos_index: index of the starting displacement
     /// starting_displacement: the starting offest value at the starting_pos_index and starting_pos_index + 1
-    pub fn new(num_points: usize, starting_pos_index: usize,starting_displacement: f32) -> Self {
-        let mut string_pos = vec![0.0; num_points];
-        //pluck string
-        string_pos[starting_pos_index] = starting_displacement;
-        string_pos[starting_pos_index + 1] = starting_displacement;
-        Self {
+    /// c: wave speed?
+    pub fn new(num_points: usize, starting_pos_index: usize,starting_displacement: f32,c:f32) -> Self {
+        //string_pos[starting_pos_index + 1] = starting_displacement * 0.51;
+        let mut s = StringWave {
             num_points,
-            string_pos,
+            initial_num_points: num_points,
             starting_pos_index,
+            past_string_pos: Vec::new(),
+            current_string_pos: Vec::new(),
             starting_displacement,
+            c
+        };
+        s.set_initial_conditions();
+        s
+    }
+    //reset wave
+    pub fn set_initial_conditions(&mut self){
+        self.num_points=self.initial_num_points;
+        let mut string_pos = vec![0.0; self.num_points];
+        //pluck string
+        for i in 0..self.starting_pos_index {
+            string_pos[i] = self.starting_displacement*0.9
         }
+        self.past_string_pos = string_pos.clone();
+        self.current_string_pos = string_pos.clone();
     }
     ///Step the simulation forward one step
-    pub fn update(&mut self) {
+    pub fn _update_heat(&mut self) {
         //update string_pos by averaging neighbors
         let mut new_string_pos = vec![0.0; self.num_points];
         for i in 1..self.num_points - 2 {
-            new_string_pos[i] = (self.string_pos[i - 1] + self.string_pos[i + 1]) / 2.0;
+            new_string_pos[i] = (self.current_string_pos[i - 1] + self.current_string_pos[i + 1]) / 2.0;
         }
-        self.string_pos = new_string_pos;
+        self.current_string_pos = new_string_pos;
+    }
+
+    ///Step the simulation forward one step
+    pub fn update_wave(&mut self) {
+        //update string_pos by averaging neighbors
+        let mut new_string_pos = vec![0.0; self.num_points];
+        for i in 1..self.num_points - 2 {
+            
+            new_string_pos[i] = self.c * 
+            (self.current_string_pos[i - 1] + self.current_string_pos[i + 1] - 2.0 * self.current_string_pos[i]) +
+             2.0 * self.current_string_pos[i] - self.past_string_pos[i];
+        }
+        self.past_string_pos = self.current_string_pos.clone();
+        self.current_string_pos = new_string_pos;
     }
 
     /// returns points with following properties:
@@ -41,7 +75,7 @@ impl StringWave {
         (0..self.num_points)
             .map(|i| {
                 let x = i as f32;
-                let y = self.string_pos[i];
+                let y = self.current_string_pos[i];
                 rect_transform.transform_pos(pos2(x, y))
             })
             .collect()
