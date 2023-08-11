@@ -9,15 +9,23 @@ use crate::style::nord_ui_visuals;
 pub struct LyraApp {
     #[serde(skip)]
     wave: StringWave,
+    settings_open: bool,
+    updates_per_frame: usize,
 }
 
 impl Default for LyraApp {
     fn default() -> Self {
         Self {
             // Example stuff:
-            wave: StringWave::new(500, 100, 500.0,0.9),
+            wave: StringWave::new(500, 100, 500.0, 0.9),
+            settings_open: false,
+            updates_per_frame: 1,
         }
     }
+}
+enum GuiMode {
+    Mobile,
+    Desktop,
 }
 
 impl LyraApp {
@@ -35,6 +43,30 @@ impl LyraApp {
 
         Default::default()
     }
+
+    fn add_settings_ui(ui: &mut Ui, wave: &mut StringWave, updates_per_frame: &mut usize) {
+        ui.vertical(|ui| {
+            ui.add(
+                egui::Slider::new(&mut wave.c, 0.001..=1.0)
+                    .text("Wave Speed")
+                    .clamp_to_range(true),
+            );
+            ui.add(
+                egui::Slider::new(&mut wave.initial_num_points, wave.starting_pos_index..=1000)
+                    .text("Number of Points")
+                    .clamp_to_range(true),
+            );
+            ui.add(
+                egui::Slider::new(updates_per_frame, 1..=2000)
+                    .text("Sim updates per frame")
+                    .clamp_to_range(true),
+            );
+            //reset button
+            if ui.button("Reset").clicked() {
+                wave.set_initial_conditions();
+            }
+        });
+    }
 }
 
 impl eframe::App for LyraApp {
@@ -46,40 +78,58 @@ impl eframe::App for LyraApp {
     /// Called each time the UI needs repainting, which may be many times per second.
     /// Put your widgets into a `SidePanel`, `TopPanel`, `CentralPanel`, `Window` or `Area`.
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        let Self { wave } = self;
+        let Self {
+            wave,
+            settings_open,
+            updates_per_frame,
+        } = self;
+
+        //catppuccin_egui::set_theme(&ctx, catppuccin_egui::FRAPPE);
         //Update the state
-        wave.update_wave();
+        for _ in 0..*updates_per_frame {
+            wave.update_wave();
+        }
         // Examples of how to create different panels and windows.
         // Pick whichever suits you.
         // Tip: a good default choice is to just keep the `CentralPanel`.
         // For inspiration and more examples, go to https://emilk.github.io/egui
 
-        //#[cfg(not(target_arch = "wasm32"))] // no File->Quit on web pages!
-        //collapse pane
+        egui::TopBottomPanel::top("top_bar").show(ctx, |ui| {
+            egui::trace!(ui);
+            ui.horizontal_wrapped(|ui| {
+                ui.visuals_mut().button_frame = false;
+                ui.toggle_value(settings_open, "⚙ Settings");
+            });
+        });
 
+        let gui_mode = if ctx.available_rect().width() < 800.0 {
+            GuiMode::Mobile
+        } else {
+            GuiMode::Desktop
+        };
 
-                //create settings menu
-                egui::Window::new("Settings").default_pos(Pos2{x: 0.0,y: 500.0}).show(ctx, |ui| {
-                    ui.vertical(|ui| {
-                        ui.add(
-                            egui::Slider::new(&mut wave.c, 0.000001..=1.0)
-                                .text("Wave Speed")
-                                .clamp_to_range(true),
-                        );
-                        ui.add(
-                            egui::Slider::new(&mut wave.initial_num_points, wave.starting_pos_index..=1000)
-                                .text("Number of Points")
-                                .clamp_to_range(true),
-                        );
-                        //reset button
-                        if ui.button("Reset").clicked() {
-                            wave.set_initial_conditions();
-                        }
-                    });
-                });//create settings menu
-
-
-        
+        //add settings ui
+        match gui_mode {
+            GuiMode::Mobile => {
+                egui::TopBottomPanel::bottom("settings_panel").show_animated(
+                    ctx,
+                    self.settings_open,
+                    |ui| {
+                        LyraApp::add_settings_ui(ui, wave,updates_per_frame);
+                    },
+                );
+            }
+            GuiMode::Desktop => {
+                egui::SidePanel::left("settings_panel").show_animated(
+                    ctx,
+                    self.settings_open,
+                    |ui| {
+                        LyraApp::add_settings_ui(ui, wave,updates_per_frame);
+                    },
+                );
+            }
+        }
+        //main window
         egui::CentralPanel::default().show(ctx, |ui| {
             Frame::canvas(ui.style()).show(ui, |ui| {
                 ui.ctx().request_repaint();
@@ -100,8 +150,5 @@ impl eframe::App for LyraApp {
                 ui.painter().extend(shapes);
             });
         });
-
-
     }
-
 }
